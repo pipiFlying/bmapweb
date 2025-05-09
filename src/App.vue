@@ -5,12 +5,12 @@
 </template>
 
 <script>
-import MapGL from "./components/MapGL.vue";
+import MapGL from './components/MapGL.vue'
 
 export default {
-  name: "App",
+  name: 'App',
   components: { MapGL },
-};
+}
 </script>
 
 <style>

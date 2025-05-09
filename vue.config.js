@@ -1,8 +1,8 @@
-const { defineConfig } = require("@vue/cli-service");
+const { defineConfig } = require('@vue/cli-service')
 module.exports = defineConfig({
   transpileDependencies: true,
   productionSourceMap: false,
-  publicPath: process.env.NODE_ENV === "production" ? "/bmapweb/" : "/",
+  publicPath: process.env.NODE_ENV === 'production' ? '/bmapweb/' : '/',
   css: {
     loaderOptions: {
       scss: {
@@ -10,4 +10,4 @@ module.exports = defineConfig({
       },
     },
   },
-});
+})

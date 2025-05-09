@@ -2,113 +2,71 @@
   <div class="map-container">
     <div id="GL" class="map-container-GL" ref="mapGL"></div>
     <div class="map-container-btns">
-      <div class="btn-qy" @click="zoomToFQAreas">福泉园区</div>
-      <div
-        class="btn-item"
-        v-for="(area, index) in FQAreas"
-        :key="index"
-        @click="zoomToArea(index)"
-      >
+      <div class="btn-qy" @click="zoomToHAreas('FQ')">福泉园区</div>
+      <div class="btn-item" v-for="(area, index) in FQAreas" :key="index" @click="zoomToArea('FQ', index)">
         {{ area.name }}
+      </div>
+      <div class="btn-qy" @click="zoomToHAreas('WA')">瓮安园区</div>
+      <div v-for="(area, index) in WAAreas" :key="index">
+        <div class="btn-item" v-if="area.showTip" @click="zoomToArea('WA', index)">
+          {{ area.name }}
+        </div>
       </div>
     </div>
   </div>
 </template>
 
 <script>
-import { machangping, shuanglongzutuan, luoweitangzutuan } from "@/json/index";
-import { loadBMapGL } from "@/utils/index";
+import { FQ } from '@/json/FQ'
+import { WA } from '@/json/WA'
+import { loadBMapGL } from '@/utils/index'
 
 export default {
-  name: "MapGL",
-  components: {},
+  name: 'MapGL',
   data() {
     return {
       mapOptions: {
-        FQcenter: {
-          lng: 107.46290225830913,
-          lat: 26.808498502453208,
-        },
+        center: { lng: 107.46290225830913, lat: 26.808498502453208 },
         zoom: 12,
         tilt: 60,
-        heading: 0,
-        styleId: "d674a6396fd8c655b5b0d08117400fa4",
+        minZoom: 10,
+        maxZoom: 17,
+        styleId: process.env.VUE_APP_MAPSTYLEID,
       },
+      areasOptions: {
+        FQ: FQ,
+        WA: WA,
+      },
+      FQAreas: [...FQ.areas],
+      WAAreas: [...WA.areas],
+      areas: [...FQ.areas, ...WA.areas],
       map: null,
       BMapGL: null,
-      MapType: null,
-      FQAreas: [
-        {
-          name: "区块一",
-          alias: "区块一：马场坪工业园区",
-          path: machangping,
-          strokeColor: "#5679ea",
-          fillColor: "#5679ea",
-          strokeStyle: "dashed",
-          polygon: null,
-        },
-        {
-          name: "区块二",
-          alias: "区块二：双龙工业园区（双龙组团）",
-          path: shuanglongzutuan,
-          strokeColor: "#5679ea",
-          fillColor: "#5679ea",
-          strokeStyle: "dashed",
-          polygon: null,
-        },
-        {
-          name: "区块三",
-          alias: "区块三：双龙工业园区（罗尾塘组团）",
-          path: luoweitangzutuan,
-          strokeColor: "#5679ea",
-          fillColor: "#5679ea",
-          strokeStyle: "dashed",
-          polygon: null,
-        },
-      ],
-    };
-  },
-  watch: {
-    MapType: {
-      immediate: true,
-      handler(val) {
-        val && this.updateMapType(val);
-      },
-    },
+    }
   },
   mounted() {
-    loadBMapGL(this.onMapReady);
+    loadBMapGL(this.onMapReady)
   },
   methods: {
     onMapReady() {
-      // eslint-disable-next-line no-undef
-      BMapGL && (this.BMapGL = BMapGL);
+      window.BMapGL && (this.BMapGL = window.BMapGL)
       this.map = new this.BMapGL.Map(this.$refs.mapGL, {
         enableHighResolution: false,
-      });
-      this.map.centerAndZoom(
-        new this.BMapGL.Point(
-          this.mapOptions.FQcenter.lng,
-          this.mapOptions.FQcenter.lat
-        ),
-        this.mapOptions.zoom
-      );
-      this.map.setTilt(this.mapOptions.tilt);
-      // this.map.setMapStyleV2({ styleId: this.mapOptions.styleId })
-      this.map.enableScrollWheelZoom();
-      this.map.setMinZoom(10);
-      this.map.setMaxZoom(17);
-      // eslint-disable-next-line no-undef
-      this.MapType = "BMAP_EARTH_MAP";
-      this.map.enableContinuousZoom();
-      this.setupListeners();
-      this.setAreas();
+      })
+      const { center, zoom, tilt, styleId, minZoom, maxZoom } = this.mapOptions
+      this.map.centerAndZoom(new this.BMapGL.Point(center.lng, center.lat), zoom)
+      this.map.setTilt(tilt)
+      this.map.setMapStyleV2({ styleId })
+      this.map.enableScrollWheelZoom()
+      this.map.setMinZoom(minZoom)
+      this.map.setMaxZoom(maxZoom)
+      this.map.setMapType(window.BMAP_SATELLITE_MAP) // ["BMAP_NORMAL_MAP", "BMAP_SATELLITE_MAP", "BMAP_EARTH_MAP"]
+      this.map.enableContinuousZoom()
+      this.setAreas()
     },
     setAreas() {
-      this.FQAreas.forEach((area) => {
-        const points = area.path.map(
-          (coord) => new this.BMapGL.Point(coord.lng, coord.lat)
-        );
+      this.areas.forEach((area) => {
+        const points = area.path.map((coord) => new this.BMapGL.Point(coord.lng, coord.lat))
         area.polygon = new this.BMapGL.Polygon(points, {
           strokeColor: area.strokeColor,
           strokeWeight: 2,
@@ -116,119 +74,83 @@ export default {
           fillColor: area.fillColor,
           fillOpacity: 0.2,
           strokeStyle: area.strokeStyle,
-        });
-        const prism = new this.BMapGL.Prism(points, 500, {
+        })
+        const prism = new this.BMapGL.Prism(points, 200, {
           topFillColor: area.fillColor,
-          topFillOpacity: 0.5,
+          topFillOpacity: 0.6,
           sideFillColor: area.strokeColor,
-          sideFillOpacity: 0.5,
-        });
-        this.map.addOverlay(prism);
+          sideFillOpacity: 0.4,
+        })
+        area.showPrism && this.map.addOverlay(prism)
 
-        const center = this.calculateCenter(points);
-        this.creatDOM(center, area);
+        const center = this.calculateCenter(points)
+        area.showTip && this.creatDOM(center, area)
 
-        this.map.addOverlay(area.polygon);
-      });
+        this.map.addOverlay(area.polygon)
+      })
     },
     calculateCenter(points) {
-      const lngs = points.map((p) => p.lng);
-      const lats = points.map((p) => p.lat);
-      const minLng = Math.min(...lngs);
-      const maxLng = Math.max(...lngs);
-      const minLat = Math.min(...lats);
-      const maxLat = Math.max(...lats);
-      return new this.BMapGL.Point(
-        (minLng + maxLng) / 2,
-        (minLat + maxLat) / 2
-      );
+      const lngs = points.map((p) => p.lng)
+      const lats = points.map((p) => p.lat)
+      const minLng = Math.min(...lngs)
+      const maxLng = Math.max(...lngs)
+      const minLat = Math.min(...lats)
+      const maxLat = Math.max(...lats)
+      return new this.BMapGL.Point((minLng + maxLng) / 2, (minLat + maxLat) / 2)
     },
-    zoomToFQAreas() {
-      const viewport = {
-        center: new this.BMapGL.Point(
-          this.mapOptions.FQcenter.lng,
-          this.mapOptions.FQcenter.lat
-        ),
-        zoom: 12,
-        tilt: this.mapOptions.tilt,
-      };
-      const options = {
-        duration: 1000,
-        delay: 0,
-        // eslint-disable-next-line no-undef
-        type: BMAP_ANIMATION_BOUNCE,
-      };
-      this.map.setViewport(viewport, options);
+    zoomToHAreas(h) {
+      const { center } = this.areasOptions[h]
+      const viewport = { center: new this.BMapGL.Point(center.lng, center.lat), zoom: 12 }
+      const options = { duration: 1000, delay: 100, type: window.BMAP_ANIMATION_BOUNCE, tilt: this.mapOptions.tilt }
+      this.map.setViewport(viewport, options)
     },
-    zoomToArea(index) {
-      const area = this.FQAreas[index];
-      const points = area.path.map(
-        (coord) => new this.BMapGL.Point(coord.lng, coord.lat)
-      );
-      const center = this.calculateCenter(points);
+    zoomToArea(ar, index) {
+      const area = this[ar + 'Areas'][index]
+      const points = area.path.map((coord) => new this.BMapGL.Point(coord.lng, coord.lat))
+      const center = this.calculateCenter(points)
       // 设置动画参数
-      const viewport = {
-        center: center,
-        zoom: 15,
-        tilt: this.mapOptions.tilt,
-      };
-      const options = {
-        duration: 1000,
-        delay: 0,
-        // eslint-disable-next-line no-undef
-        type: BMAP_ANIMATION_BOUNCE,
-      };
-      this.map.setViewport(viewport, options);
+      const viewport = { center: center, zoom: 15 }
+      const options = { duration: 1000, delay: 100, type: window.BMAP_ANIMATION_BOUNCE, tilt: 0 }
+      this.map.setViewport(viewport, options)
     },
     creatDOM(point, area) {
       function CustomOverlay(point) {
-        this._point = point;
+        this._point = point
       }
-      CustomOverlay.prototype = new this.BMapGL.Overlay();
+      CustomOverlay.prototype = new this.BMapGL.Overlay()
 
       CustomOverlay.prototype.initialize = function (map) {
-        this._map = map;
-        const container = document.createElement("div");
-        container.className = "custom-overlay";
+        this._map = map
+        const container = document.createElement('div')
+        container.className = 'custom-overlay'
         container.innerHTML = `
           <div class="custom-overlay-box">
             <div class="custom-overlay-title">${area.alias}</div>
-          </div>`;
-        const arrow = document.createElement("div");
-        container.appendChild(arrow);
-        arrow.className = "custom-arrow";
-        this._div = container;
-        map.getPanes().labelPane.appendChild(container);
-        return container;
-      };
+          </div>`
+        const arrow = document.createElement('div')
+        container.appendChild(arrow)
+        arrow.className = 'custom-arrow'
+        this._div = container
+        map.getPanes().labelPane.appendChild(container)
+        return container
+      }
       CustomOverlay.prototype.draw = function () {
-        const pixel = this._map.pointToOverlayPixel(this._point);
-        const div = this._div;
-        const width = div.offsetWidth;
-        const height = div.offsetHeight;
-        div.style.left = pixel.x - width / 2 + "px";
-        div.style.top = pixel.y - 2 * height + "px";
-      };
-      const customOverlay = new CustomOverlay(point);
-      this.map.addOverlay(customOverlay);
-    },
-    setupListeners() {
-      // const that = this
-      // that.map.addEventListener('zoomend', () => {
-      //   const zoom = that.map.getZoom()
-      //   zoom <= 14 ? that.MapType = 'BMAP_EARTH_MAP' : that.MapType = 'BMAP_SATELLITE_MAP'
-      // })
-    },
-    updateMapType(type) {
-      // eslint-disable-next-line no-undef, prettier/prettier
-      type === "BMAP_EARTH_MAP" ? this.map.setMapType(BMAP_EARTH_MAP) : this.map.setMapType(BMAP_SATELLITE_MAP);
+        const pixel = this._map.pointToOverlayPixel(this._point)
+        const div = this._div
+        const width = div.offsetWidth
+        const height = div.offsetHeight
+        div.style.left = pixel.x - width / 2 + 'px'
+        div.style.top = pixel.y - 2 * height + 'px'
+      }
+      const customOverlay = new CustomOverlay(point)
+      this.map.addOverlay(customOverlay)
     },
   },
   beforeDestroy() {
-    this.map && this.map.destroy();
-    this.BMapGL && (this.BMapGL = null);
+    this.map && this.map.destroy()
+    this.BMapGL && (this.BMapGL = null)
   },
-};
+}
 </script>
 
 <style lang="scss" scoped>
@@ -244,9 +166,11 @@ export default {
   position: relative;
   width: 100%;
   height: 100vh;
+  background: #2e3720;
   &-GL {
     width: 100%;
     height: 100%;
+    background: #2e3720;
   }
   &-btns {
     position: absolute;
@@ -270,7 +194,7 @@ export default {
       margin: H(20) 0;
       padding: H(10);
       min-width: W(100);
-      background: url("@/assets/btn-bg.png");
+      background: url('@/assets/btn-bg.png');
       background-size: 100% 100%;
       font-size: W(16);
       &:hover {
