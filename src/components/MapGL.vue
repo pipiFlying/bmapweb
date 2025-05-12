@@ -209,7 +209,7 @@ export default {
   position: absolute;
   bottom: 0;
   height: H(80);
-  width: W(220);
+  width: W(160);
   font-size: W(16);
   background-color: rgba(0, 60, 120, 0.6);
   box-shadow: 0 0 10px rgba(0, 200, 255, 0.7);
@@ -217,7 +217,7 @@ export default {
   color: $font-text-color-light;
   &-title {
     height: H(80);
-    padding: W(10);
+    padding: W(5);
     text-align: center;
   }
 }
