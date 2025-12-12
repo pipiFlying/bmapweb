@@ -10,4 +10,8 @@ module.exports = defineConfig({
       },
     },
   },
+  devServer: {
+    https: true,
+    allowedHosts: ['jackqueline-versatile-wallace.ngrok-free.dev', 'localhost'],
+  },
 })
