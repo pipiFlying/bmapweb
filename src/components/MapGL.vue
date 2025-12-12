@@ -69,15 +69,15 @@ export default {
         const points = area.path.map((coord) => new this.BMapGL.Point(coord.lng, coord.lat))
         area.polygon = new this.BMapGL.Polygon(points, {
           strokeColor: area.strokeColor,
-          strokeWeight: 2,
+          strokeWeight: 3,
           strokeOpacity: 1,
           fillColor: area.fillColor,
-          fillOpacity: 0.2,
+          fillOpacity: 0,
           strokeStyle: area.strokeStyle,
         })
-        const prism = new this.BMapGL.Prism(points, 200, {
+        const prism = new this.BMapGL.Prism(points, 100, {
           topFillColor: area.fillColor,
-          topFillOpacity: 0.6,
+          topFillOpacity: 0.05,
           sideFillColor: area.strokeColor,
           sideFillOpacity: 0.4,
         })
@@ -211,8 +211,8 @@ export default {
   height: H(80);
   width: W(160);
   font-size: W(16);
-  background-color: rgba(0, 60, 120, 0.6);
-  box-shadow: 0 0 10px rgba(0, 200, 255, 0.7);
+  background-color: rgba(0, 60, 120, 0.5);
+  box-shadow: 0 0 10px rgba(0, 200, 255, 0.5);
   border-radius: W(8);
   color: $font-text-color-light;
   &-title {
@@ -225,7 +225,7 @@ export default {
   width: 0;
   height: 0;
   margin: 0 auto;
-  margin-top: W(-20);
+  margin-top: W(-10);
   border-left: W(16) solid transparent;
   border-right: W(16) solid transparent;
   border-top: W(16) solid rgba(0, 60, 120, 0.6);
